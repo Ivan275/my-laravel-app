@@ -38,4 +38,14 @@ class PostRepository
 
         return Post::hydrate($rows);
     }
+
+    /**
+     * Store a new post.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function create(array $attributes): Post
+    {
+        return Post::create($attributes);
+    }
 }

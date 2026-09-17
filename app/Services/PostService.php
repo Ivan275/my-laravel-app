@@ -19,4 +19,14 @@ class PostService
     {
         return $this->posts->getPublished();
     }
+
+    /**
+     * Create a post from validated input.
+     *
+     * @param  array{title: string, content: string, author?: ?string, published?: bool}  $attributes
+     */
+    public function createPost(array $attributes): Post
+    {
+        return $this->posts->create($attributes);
+    }
 }
