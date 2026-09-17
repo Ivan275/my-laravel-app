@@ -4,20 +4,20 @@ namespace App\Services;
 
 use App\Models\Post;
 use App\Repositories\PostRepository;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PostService
 {
     public function __construct(private PostRepository $posts) {}
 
     /**
-     * List the posts that are visible to readers.
+     * List one page of the posts that are visible to readers.
      *
-     * @return Collection<int, Post>
+     * @return LengthAwarePaginator<int, Post>
      */
-    public function listPublishedPosts(): Collection
+    public function listPublishedPosts(int $perPage, int $page): LengthAwarePaginator
     {
-        return $this->posts->getPublished();
+        return $this->posts->paginatePublished($perPage, $page);
     }
 
     /**

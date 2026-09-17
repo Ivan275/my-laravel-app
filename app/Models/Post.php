@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Repositories\PostRepository;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 #[Fillable(['title', 'content', 'author', 'published'])]
 class Post extends Model
@@ -21,17 +21,17 @@ class Post extends Model
     public const UPDATED_AT = null;
 
     /**
-     * Cache key for the published posts list.
+     * Cache key holding the current version of the cached published pages.
      */
-    public const PUBLISHED_CACHE_KEY = 'posts.published';
+    public const PUBLISHED_CACHE_VERSION_KEY = 'posts.published.version';
 
     /**
-     * Clear the cached posts list whenever a post changes through Eloquent.
+     * Clear the cached posts pages whenever a post changes through Eloquent.
      */
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget(self::PUBLISHED_CACHE_KEY));
-        static::deleted(fn () => Cache::forget(self::PUBLISHED_CACHE_KEY));
+        static::saved(fn () => PostRepository::flushPublishedCache());
+        static::deleted(fn () => PostRepository::flushPublishedCache());
     }
 
     /**

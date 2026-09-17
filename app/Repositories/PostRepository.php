@@ -3,40 +3,62 @@
 namespace App\Repositories;
 
 use App\Models\Post;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class PostRepository
 {
     /**
-     * How long the published posts list stays cached, in seconds.
+     * How long each cached page of published posts lives, in seconds.
      *
      * Posts can also be edited directly in Supabase, which bypasses model
-     * events, so the TTL bounds how stale the list can get.
+     * events, so the TTL bounds how stale a page can get.
      */
     public const PUBLISHED_CACHE_TTL = 60;
 
     /**
-     * Get all published posts, newest first.
+     * Get one page of published posts, newest first.
      *
-     * @return Collection<int, Post>
+     * @return LengthAwarePaginator<int, Post>
      */
-    public function getPublished(): Collection
+    public function paginatePublished(int $perPage, int $page): LengthAwarePaginator
     {
+        $key = sprintf('posts.published.%s.page.%d.per.%d', self::publishedCacheVersion(), $page, $perPage);
+
         // Cache raw attributes: the cache store refuses to unserialize model objects.
-        $rows = Cache::remember(
-            Post::PUBLISHED_CACHE_KEY,
-            self::PUBLISHED_CACHE_TTL,
-            fn () => Post::query()
+        $cached = Cache::remember($key, self::PUBLISHED_CACHE_TTL, function () use ($perPage, $page) {
+            $paginator = Post::query()
                 ->published()
                 ->latest()
                 ->latest('id')
-                ->get()
-                ->map(fn (Post $post) => $post->getAttributes())
-                ->all(),
-        );
+                ->paginate($perPage, page: $page);
 
-        return Post::hydrate($rows);
+            return [
+                'rows' => $paginator->getCollection()->map(fn (Post $post) => $post->getAttributes())->all(),
+                'total' => $paginator->total(),
+            ];
+        });
+
+        return new Paginator(
+            Post::hydrate($cached['rows']),
+            $cached['total'],
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath()],
+        );
+    }
+
+    /**
+     * Invalidate every cached page of published posts at once.
+     *
+     * Page keys embed the version, so changing it orphans the old pages,
+     * which then expire through their TTL.
+     */
+    public static function flushPublishedCache(): void
+    {
+        Cache::forget(Post::PUBLISHED_CACHE_VERSION_KEY);
     }
 
     /**
@@ -47,5 +69,10 @@ class PostRepository
     public function create(array $attributes): Post
     {
         return Post::create($attributes);
+    }
+
+    private static function publishedCacheVersion(): string
+    {
+        return Cache::rememberForever(Post::PUBLISHED_CACHE_VERSION_KEY, fn () => Str::random(12));
     }
 }
