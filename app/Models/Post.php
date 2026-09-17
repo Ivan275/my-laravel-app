@@ -21,6 +21,15 @@ class Post extends Model
     public const UPDATED_AT = null;
 
     /**
+     * Mirror the column default so a newly created post reports it correctly.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'published' => true,
+    ];
+
+    /**
      * Cache key holding the current version of the cached published pages.
      */
     public const PUBLISHED_CACHE_VERSION_KEY = 'posts.published.version';

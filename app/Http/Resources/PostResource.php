@@ -14,7 +14,7 @@ class PostResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array{id: int, title: string, content: string, author: ?string, created_at: ?string}
+     * @return array{id: int, title: string, content: string, author: ?string, published: bool, created_at: ?string}
      */
     public function toArray(Request $request): array
     {
@@ -23,6 +23,7 @@ class PostResource extends JsonResource
             'title' => $this->title,
             'content' => $this->content,
             'author' => $this->author,
+            'published' => (bool) $this->published,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

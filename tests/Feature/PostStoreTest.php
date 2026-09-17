@@ -22,6 +22,7 @@ class PostStoreTest extends TestCase
             ->assertJsonPath('data.title', 'Hello')
             ->assertJsonPath('data.content', 'First post body')
             ->assertJsonPath('data.author', 'Ivan')
+            ->assertJsonPath('data.published', true)
             ->assertJsonStructure(['data' => ['id', 'title', 'content', 'author', 'created_at']]);
 
         $this->assertDatabaseHas('posts', ['title' => 'Hello', 'author' => 'Ivan', 'published' => true]);

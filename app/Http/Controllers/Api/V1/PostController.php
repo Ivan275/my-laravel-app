@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
+use App\Models\Post;
 use App\Services\PostService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class PostController extends Controller
 {
@@ -35,5 +38,23 @@ class PostController extends Controller
     public function store(StorePostRequest $request, PostService $postService): PostResource
     {
         return new PostResource($postService->createPost($request->validated()));
+    }
+
+    /**
+     * Update an existing post.
+     */
+    public function update(UpdatePostRequest $request, Post $post, PostService $postService): PostResource
+    {
+        return new PostResource($postService->updatePost($post, $request->validated()));
+    }
+
+    /**
+     * Delete a post.
+     */
+    public function destroy(Post $post, PostService $postService): Response
+    {
+        $postService->deletePost($post);
+
+        return response()->noContent();
     }
 }

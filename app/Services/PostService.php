@@ -29,4 +29,22 @@ class PostService
     {
         return $this->posts->create($attributes);
     }
+
+    /**
+     * Update a post with validated input.
+     *
+     * @param  array{title?: string, content?: string, author?: ?string, published?: bool}  $attributes
+     */
+    public function updatePost(Post $post, array $attributes): Post
+    {
+        return $this->posts->update($post, $attributes);
+    }
+
+    /**
+     * Delete a post.
+     */
+    public function deletePost(Post $post): void
+    {
+        $this->posts->delete($post);
+    }
 }

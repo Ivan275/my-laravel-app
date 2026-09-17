@@ -71,6 +71,26 @@ class PostRepository
         return Post::create($attributes);
     }
 
+    /**
+     * Update a post.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function update(Post $post, array $attributes): Post
+    {
+        $post->update($attributes);
+
+        return $post;
+    }
+
+    /**
+     * Delete a post.
+     */
+    public function delete(Post $post): void
+    {
+        $post->delete();
+    }
+
     private static function publishedCacheVersion(): string
     {
         return Cache::rememberForever(Post::PUBLISHED_CACHE_VERSION_KEY, fn () => Str::random(12));
