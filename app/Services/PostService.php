@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessNewPost;
 use App\Models\Post;
 use App\Repositories\PostRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -21,13 +22,17 @@ class PostService
     }
 
     /**
-     * Create a post from validated input.
+     * Create a post from validated input, then process it in the background.
      *
      * @param  array{title: string, content: string, author?: ?string, published?: bool}  $attributes
      */
     public function createPost(array $attributes): Post
     {
-        return $this->posts->create($attributes);
+        $post = $this->posts->create($attributes);
+
+        ProcessNewPost::dispatch($post);
+
+        return $post;
     }
 
     /**

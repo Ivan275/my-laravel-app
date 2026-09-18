@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\ProcessNewPost;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class PostStoreTest extends TestCase
@@ -62,5 +64,29 @@ class PostStoreTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['title', 'author']);
+    }
+
+    public function test_it_queues_the_new_post_for_processing(): void
+    {
+        Queue::fake();
+
+        $response = $this->postJson(route('api.v1.posts.store'), [
+            'title' => 'Queued',
+            'content' => 'Process me later',
+        ])->assertCreated();
+
+        Queue::assertPushed(
+            ProcessNewPost::class,
+            fn (ProcessNewPost $job) => $job->post->id === $response->json('data.id'),
+        );
+    }
+
+    public function test_it_does_not_queue_anything_when_validation_fails(): void
+    {
+        Queue::fake();
+
+        $this->postJson(route('api.v1.posts.store'), [])->assertUnprocessable();
+
+        Queue::assertNothingPushed();
     }
 }
