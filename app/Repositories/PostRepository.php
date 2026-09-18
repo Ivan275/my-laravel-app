@@ -51,6 +51,29 @@ class PostRepository
     }
 
     /**
+     * Count all posts, split by published state.
+     *
+     * Cached under the same version as the pages, so it refreshes with them.
+     *
+     * @return array{total: int, published: int, unpublished: int}
+     */
+    public function stats(): array
+    {
+        $key = sprintf('posts.stats.%s', self::publishedCacheVersion());
+
+        return Cache::remember($key, self::PUBLISHED_CACHE_TTL, function (): array {
+            $total = Post::query()->count();
+            $published = Post::query()->published()->count();
+
+            return [
+                'total' => $total,
+                'published' => $published,
+                'unpublished' => $total - $published,
+            ];
+        });
+    }
+
+    /**
      * Invalidate every cached page of published posts at once.
      *
      * Page keys embed the version, so changing it orphans the old pages,

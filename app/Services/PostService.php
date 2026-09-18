@@ -31,6 +31,16 @@ class PostService
     }
 
     /**
+     * Count posts for the dashboard.
+     *
+     * @return array{total: int, published: int, unpublished: int}
+     */
+    public function stats(): array
+    {
+        return $this->posts->stats();
+    }
+
+    /**
      * Update a post with validated input.
      *
      * @param  array{title?: string, content?: string, author?: ?string, published?: bool}  $attributes
